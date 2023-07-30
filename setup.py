@@ -9,7 +9,7 @@ from setuptools import find_packages, setup
 
 INSTALL_REQUIRES = [
     'h5py>=3.1', 'joblib>=1.1', 'jsonlines>=2', 'numpy>=1.19', 'pyyaml>=6',
-    'tabulate>=0.8', 'termcolor>=1.1'
+    'tabulate>=0.8', 'termcolor>=1.1', "wandb"
 ]
 
 OPENCV_INSTALL_REQUIRES = 'opencv-python-headless>=4.5', 'opencv-python>=4.5'

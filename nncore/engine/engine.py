@@ -3,6 +3,7 @@
 from collections import OrderedDict
 
 import torch
+import wandb
 
 import nncore
 from nncore.nn import build_model
@@ -154,7 +155,7 @@ class Engine(object):
                  meta=None,
                  **kwargs):
         self.model = build_model(model, **kwargs)
-
+        wandb.watch(self.model)
         if 'train' not in data_loaders:
             data_loaders = dict(train=data_loaders)
 
@@ -358,7 +359,10 @@ class Engine(object):
 
         self.logger.info('Resumed stage {}, epoch {}, iter {}'.format(
             self._stage + 1, self._epoch, self._iter))
-
+    
+    def log_output(self, output, output_type: str):
+        wandb.log({f"{output_type}_{k}": v for k, v in output.items()})
+        
     def train_iter(self, data):
         self._call_hook('before_train_iter')
 
@@ -373,7 +377,7 @@ class Engine(object):
             self.buffer.update(
                 key,
                 value.detach().cpu() if torch.is_tensor(value) else value)
-
+        self.log_output(output, "train")
         self._call_hook('after_train_iter')
         self._iter += 1
 
@@ -390,7 +394,7 @@ class Engine(object):
             self.buffer.update(
                 key,
                 value.detach().cpu() if torch.is_tensor(value) else value)
-
+        self.log_output(output, "valid")
         self._call_hook('after_val_iter')
 
     def test_iter(self, data):
@@ -468,7 +472,8 @@ class Engine(object):
         if self.epoch_in_stage == 0:
             self.optimizer = build_optimizer(
                 self.cur_stage['optimizer'], params=self.model.parameters())
-
+            
+        wandb.config.update({"optimizer": optim_type, **optim})
         self._call_hook('before_stage')
 
         for _ in range(self.cur_stage['epochs'] - self.epoch_in_stage):
@@ -504,6 +509,7 @@ class Engine(object):
 
             output = self.data_loader.dataset.evaluate(
                 blob, logger=self.logger, **cfg)
+            self.log_output(output, "eval")
         else:
             output = dict()
 
