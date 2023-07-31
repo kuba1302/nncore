@@ -473,7 +473,7 @@ class Engine(object):
             self.optimizer = build_optimizer(
                 self.cur_stage['optimizer'], params=self.model.parameters())
             
-        wandb.config.update({"optimizer": optim_type, **optim})
+        wandb.config.update({"optimizer": optim_type})
         self._call_hook('before_stage')
 
         for _ in range(self.cur_stage['epochs'] - self.epoch_in_stage):
