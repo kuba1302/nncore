@@ -542,3 +542,27 @@ class Engine(object):
             self.run_stage()
 
         self._call_hook('after_launch')
+
+        self.log_model_as_artifact()
+        
+    def log_model_as_artifact(self, model_name="umt-model", artifact_name="umt-model"):
+        """
+        Log the model as a wandb artifact.
+        
+        Args:
+            model_name (str): Name for the saved model file.
+            artifact_name (str): Name for the wandb artifact.
+        """
+        # Save the model to a file
+        model_path = f"{self.work_dir}/{model_name}.pth"
+        torch.save(self.model.state_dict(), model_path)
+        
+        # Create a wandb artifact and log it
+        artifact = wandb.Artifact(
+            name=artifact_name,
+            type="model",
+            description="Trained model weights",
+            metadata=dict(epoch=self._epoch)
+        )
+        artifact.add_file(model_path)
+        wandb.log_artifact(artifact)
